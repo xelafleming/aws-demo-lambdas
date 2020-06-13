@@ -30,7 +30,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
-		}, errors.New("couldn't unmarshall message from request")
+		}, errors.New("couldn't process message from request")
 	}
 
 	post := model.Post{

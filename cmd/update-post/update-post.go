@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"os"
 	"time"
 )
 
@@ -35,7 +34,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	if err != nil {
 		fmt.Println("Couldn't unmarshall request body: ")
 		fmt.Println(err.Error())
-		os.Exit(1)
+		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process post from request")
 	}
 
 	if post.UserId != username {
@@ -49,7 +48,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	if err != nil {
 		fmt.Println("Got error marshalling expression:")
 		fmt.Println(err.Error())
-		os.Exit(1)
+		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process update expression")
 	}
 
 	key, err := dynamodbattribute.MarshalMap(Key{
@@ -60,7 +59,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	if err != nil {
 		fmt.Println("Got error marshalling key:")
 		fmt.Println(err.Error())
-		os.Exit(1)
+		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process update key")
 	}
 
 	input := &dynamodb.UpdateItemInput{
@@ -73,14 +72,17 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	if err != nil {
 		fmt.Println("Couldn't update post:")
 		fmt.Println(err.Error())
-		os.Exit(1)
+		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't update post")
 	}
 
 	jsonOut, err := json.Marshal(post)
 	if err != nil {
 		fmt.Println("Couldn't marshall post for output:")
 		fmt.Println(err.Error())
-		os.Exit(1)
+		return events.APIGatewayProxyResponse{
+			StatusCode: 200,
+			Body:       "{\"error\":\"Couldn't return post updated. Post was updated.\"}",
+		}, nil
 	}
 
 	return events.APIGatewayProxyResponse{
