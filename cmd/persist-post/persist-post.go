@@ -65,7 +65,8 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
-			Body:       "{\"error\":\"Couldn't return created post. Post was created.\"}"}, nil
+			Body:       "{\"error\":\"Couldn't return created post. Post was created.\"}",
+		}, nil
 	}
 	return events.APIGatewayProxyResponse{StatusCode: 200, Body: string(jsonOut)}, nil
 }
