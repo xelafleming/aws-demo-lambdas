@@ -1,12 +1,13 @@
 package main
 
 import (
+	"aws-demo-lambdas/internal/model"
+	"aws-demo-lambdas/internal/util"
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/google/uuid"
@@ -19,10 +20,8 @@ type Message struct {
 }
 
 func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	sess := session.Must(session.NewSession())
-	svc := dynamodb.New(sess)
-
-	username := req.RequestContext.Authorizer["claims"].(map[string]interface{})["username"].(string)
+	svc := util.InitDynamoConnection()
+	username := util.GetUsername(req)
 
 	var message Message
 	err := json.Unmarshal([]byte(req.Body), &message)
