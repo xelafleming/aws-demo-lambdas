@@ -9,19 +9,21 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/google/uuid"
 	"os"
 	"time"
 )
 
 type Post struct {
 	UserId           string    `dynamodbav:"UserId"`
+	PostId           string    `dynamodbav:"MessageId"`
 	Message          string    `dynamodbav:"Message"`
 	CreatedTimestamp time.Time `dynamodbav:"CreatedTimestamp"`
 	UpdatedTimestamp time.Time `dynamodbav:"UpdatedTimestamp"`
 }
 
 type Message struct {
-	Message string `json:"message" dynamodbav:"Message"`
+	Message string `json:"message"`
 }
 
 func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -36,6 +38,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 
 	post := Post{
 		UserId:           username,
+		PostId:           uuid.New().String(),
 		Message:          message.Message,
 		CreatedTimestamp: time.Now(),
 		UpdatedTimestamp: time.Now(),
