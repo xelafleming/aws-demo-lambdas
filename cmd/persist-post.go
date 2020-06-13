@@ -14,20 +14,32 @@ import (
 )
 
 type Post struct {
-	UserId           string    `json:"userId" dynamodbav:"UserId"`
-	Message          string    `json:"message" dynamodbav:"Message"`
-	CreatedTimestamp time.Time `json:"createdTimestamp" dynamodbav:"CreatedTimestamp"`
-	UpdatedTimestamp time.Time `json:"updatedTimestamp" dynamodbav:"UpdatedTimestamp"`
+	UserId           string    `dynamodbav:"UserId"`
+	Message          string    `dynamodbav:"Message"`
+	CreatedTimestamp time.Time `dynamodbav:"CreatedTimestamp"`
+	UpdatedTimestamp time.Time `dynamodbav:"UpdatedTimestamp"`
+}
+
+type Message struct {
+	Message string `json:"message" dynamodbav:"Message"`
 }
 
 func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	sess := session.Must(session.NewSession())
 	svc := dynamodb.New(sess)
 
-	var post Post
-	err := json.Unmarshal([]byte(req.Body), &post)
+	username := req.RequestContext.Authorizer["claims"].(map[string]interface{})["username"].(string)
+
+	var message Message
+	err := json.Unmarshal([]byte(req.Body), &message)
 	checkErr(err, "Couldn't unmarshall JSON")
 
+	post := Post{
+		UserId:           username,
+		Message:          message.Message,
+		CreatedTimestamp: time.Now(),
+		UpdatedTimestamp: time.Now(),
+	}
 	av, err := dynamodbattribute.MarshalMap(post)
 	checkErr(err, "Couldn't marshall post")
 
@@ -36,10 +48,10 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		TableName: aws.String("posts"),
 	}
 
-	avOut, err := svc.PutItem(input)
+	_, err = svc.PutItem(input)
 	checkErr(err, "Could not PutItem")
 
-	jsonOut, err := json.Marshal(avOut)
+	jsonOut, err := json.Marshal(post)
 	checkErr(err, "Error marshalling output to json")
 	return events.APIGatewayProxyResponse{StatusCode: 200, Body: string(jsonOut)}, nil
 }
