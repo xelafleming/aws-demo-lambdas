@@ -14,14 +14,6 @@ import (
 	"time"
 )
 
-type Post struct {
-	UserId           string    `dynamodbav:"UserId"`
-	MessageId        string    `dynamodbav:"MessageId"`
-	Message          string    `dynamodbav:"Message"`
-	CreatedTimestamp time.Time `dynamodbav:"CreatedTimestamp"`
-	UpdatedTimestamp time.Time `dynamodbav:"UpdatedTimestamp"`
-}
-
 type Message struct {
 	Message string `json:"message"`
 }
@@ -36,7 +28,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	err := json.Unmarshal([]byte(req.Body), &message)
 	checkErr(err, "Couldn't unmarshall JSON")
 
-	post := Post{
+	post := model.Post{
 		UserId:           username,
 		MessageId:        uuid.New().String(),
 		Message:          message.Message,
