@@ -4,6 +4,7 @@ import (
 	"aws-demo-lambdas/internal/model"
 	"aws-demo-lambdas/internal/util"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -11,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/google/uuid"
-	"os"
 	"time"
 )
 
@@ -25,7 +25,13 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 
 	var message Message
 	err := json.Unmarshal([]byte(req.Body), &message)
-	checkErr(err, "Couldn't unmarshall JSON")
+	if err != nil {
+		fmt.Println("Couldn't unmarshall message from request:")
+		fmt.Println(err.Error())
+		return events.APIGatewayProxyResponse{
+			StatusCode: 500,
+		}, errors.New("couldn't unmarshall message from request")
+	}
 
 	post := model.Post{
 		UserId:           username,
@@ -35,7 +41,11 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		UpdatedTimestamp: time.Now(),
 	}
 	av, err := dynamodbattribute.MarshalMap(post)
-	checkErr(err, "Couldn't marshall post")
+	if err != nil {
+		fmt.Println("Couldn't create dynamodbav from post object")
+		fmt.Println(err.Error())
+		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't create post")
+	}
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
@@ -43,19 +53,21 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	}
 
 	_, err = svc.PutItem(input)
-	checkErr(err, "Could not PutItem")
+	if err != nil {
+		fmt.Println("Couldn't insert item into database:")
+		fmt.Println(err.Error())
+		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't store item")
+	}
 
 	jsonOut, err := json.Marshal(post)
-	checkErr(err, "Error marshalling output to json")
-	return events.APIGatewayProxyResponse{StatusCode: 200, Body: string(jsonOut)}, nil
-}
-
-func checkErr(err error, msg string) {
 	if err != nil {
-		fmt.Println(msg + ": ")
+		fmt.Println("Couldn't marshall created item to JSON")
 		fmt.Println(err.Error())
-		os.Exit(1)
+		return events.APIGatewayProxyResponse{
+			StatusCode: 200,
+			Body:       "{\"error\":\"Couldn't return created post. Post was created.\"}"}, nil
 	}
+	return events.APIGatewayProxyResponse{StatusCode: 200, Body: string(jsonOut)}, nil
 }
 
 func main() {
