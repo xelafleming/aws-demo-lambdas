@@ -26,7 +26,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	var message Message
 	err := json.Unmarshal([]byte(req.Body), &message)
 	if err != nil {
-		fmt.Println("Couldn't unmarshall message from request:")
+		fmt.Println("Couldn't unmarshal message from request:")
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
@@ -61,7 +61,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 
 	jsonOut, err := json.Marshal(post)
 	if err != nil {
-		fmt.Println("Couldn't marshall created item to JSON")
+		fmt.Println("Couldn't marshal created item to JSON")
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,

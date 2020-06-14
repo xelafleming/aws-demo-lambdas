@@ -32,7 +32,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	var post model.Post
 	err := json.Unmarshal([]byte(req.Body), &post)
 	if err != nil {
-		fmt.Println("Couldn't unmarshall request body: ")
+		fmt.Println("Couldn't unmarshal request body: ")
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process post from request")
 	}
@@ -46,7 +46,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		UpdatedTimestamp: post.UpdatedTimestamp,
 	})
 	if err != nil {
-		fmt.Println("Got error marshalling expression:")
+		fmt.Println("Got error marshaling expression:")
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process update expression")
 	}
@@ -57,7 +57,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		CreatedTimestamp: post.CreatedTimestamp,
 	})
 	if err != nil {
-		fmt.Println("Got error marshalling key:")
+		fmt.Println("Got error marshaling key:")
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process update key")
 	}
@@ -77,7 +77,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 
 	jsonOut, err := json.Marshal(post)
 	if err != nil {
-		fmt.Println("Couldn't marshall post for output:")
+		fmt.Println("Couldn't marshal post for output:")
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
