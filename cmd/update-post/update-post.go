@@ -14,11 +14,6 @@ import (
 	"time"
 )
 
-type Expression struct {
-	Message          string    `dynamodbav:"Message"`
-	UpdatedTimestamp time.Time `dynamodbav:"UpdatedTimestamp"`
-}
-
 type Key struct {
 	UserId           string    `dynamodbav:"UserId"`
 	MessageId        string    `dynamodbav:"MessageId"`
@@ -41,16 +36,6 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		return events.APIGatewayProxyResponse{StatusCode: 403}, errors.New("calling user is trying to edit a post that does not belong to them")
 	}
 
-	expr, err := dynamodbattribute.MarshalMap(Expression{
-		Message:          post.Message,
-		UpdatedTimestamp: post.UpdatedTimestamp,
-	})
-	if err != nil {
-		fmt.Println("Got error marshaling expression:")
-		fmt.Println(err.Error())
-		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process update expression")
-	}
-
 	key, err := dynamodbattribute.MarshalMap(Key{
 		UserId:           post.UserId,
 		MessageId:        post.MessageId,
@@ -63,9 +48,17 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	}
 
 	input := &dynamodb.UpdateItemInput{
-		ExpressionAttributeValues: expr,
-		TableName:                 aws.String("posts"),
-		Key:                       key,
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":msg": {
+				S: aws.String(post.Message),
+			},
+			":updts": {
+				S: aws.String(post.UpdatedTimestamp.String()),
+			},
+		},
+		UpdateExpression: aws.String("set Message = :msg, UpdatedTimestamp = :updts"),
+		TableName:        aws.String("posts"),
+		Key:              key,
 	}
 
 	_, err = svc.UpdateItem(input)
