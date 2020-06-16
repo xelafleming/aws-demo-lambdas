@@ -26,11 +26,11 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	_, err = svc.DeleteItem(&dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
-			"UserId": {
-				S: aws.String(username),
-			},
 			"MessageId": {
 				S: aws.String(post.MessageId),
+			},
+			"UserId": {
+				S: aws.String(username),
 			},
 		},
 		TableName: aws.String("posts"),
