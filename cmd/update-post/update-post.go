@@ -10,15 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"time"
 )
-
-type Key struct {
-	UserId           string    `dynamodbav:"UserId"`
-	MessageId        string    `dynamodbav:"MessageId"`
-	CreatedTimestamp time.Time `dynamodbav:"CreatedTimestamp"`
-}
 
 func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	svc := util.InitDynamoConnection()
@@ -32,21 +24,6 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process post from request")
 	}
 
-	if post.UserId != username {
-		return events.APIGatewayProxyResponse{StatusCode: 403}, errors.New("calling user is trying to edit a post that does not belong to them")
-	}
-
-	key, err := dynamodbattribute.MarshalMap(Key{
-		UserId:           post.UserId,
-		MessageId:        post.MessageId,
-		CreatedTimestamp: post.CreatedTimestamp,
-	})
-	if err != nil {
-		fmt.Println("Got error marshaling key:")
-		fmt.Println(err.Error())
-		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process update key")
-	}
-
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":msg": {
@@ -58,7 +35,14 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		},
 		UpdateExpression: aws.String("set Message = :msg, UpdatedTimestamp = :updts"),
 		TableName:        aws.String("posts"),
-		Key:              key,
+		Key: map[string]*dynamodb.AttributeValue{
+			"MessageId": {
+				S: aws.String(post.MessageId),
+			},
+			"UserId": {
+				S: aws.String(username),
+			},
+		},
 	}
 
 	_, err = svc.UpdateItem(input)
