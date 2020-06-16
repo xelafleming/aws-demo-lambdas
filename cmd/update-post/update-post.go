@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"time"
 )
 
 func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -30,7 +31,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 				S: aws.String(post.Message),
 			},
 			":updts": {
-				S: aws.String(post.UpdatedTimestamp.String()),
+				S: aws.String(post.UpdatedTimestamp.Format(time.RFC3339)),
 			},
 		},
 		UpdateExpression: aws.String("set Message = :msg, UpdatedTimestamp = :updts"),
