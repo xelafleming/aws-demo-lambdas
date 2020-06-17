@@ -31,7 +31,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 				S: aws.String(post.Message),
 			},
 			":updts": {
-				S: aws.String(post.UpdatedTimestamp.Format(time.RFC3339)),
+				S: aws.String(post.UpdatedTimestamp.Format(time.RFC3339Nano)),
 			},
 		},
 		UpdateExpression: aws.String("set Message = :msg, UpdatedTimestamp = :updts"),
