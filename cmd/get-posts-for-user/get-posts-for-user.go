@@ -50,7 +50,14 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't format posts to return")
 	}
-	return events.APIGatewayProxyResponse{StatusCode: 200, Body: string(jsonOut)}, nil
+	return events.APIGatewayProxyResponse{StatusCode: 200,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "*",
+			"Access-Control-Allow-Methods": "POST,PUT,OPTIONS,DELETE",
+			"Access-Control-Max-Age":       "86400",
+		},
+		Body: string(jsonOut)}, nil
 }
 
 func main() {

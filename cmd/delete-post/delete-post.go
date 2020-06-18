@@ -41,7 +41,13 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't delete post")
 	}
 
-	return events.APIGatewayProxyResponse{StatusCode: 204}, nil
+	return events.APIGatewayProxyResponse{StatusCode: 204,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "*",
+			"Access-Control-Allow-Methods": "POST,PUT,OPTIONS,DELETE",
+			"Access-Control-Max-Age":       "86400",
+		}}, nil
 }
 
 func main() {

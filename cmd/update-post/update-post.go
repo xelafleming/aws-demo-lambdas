@@ -24,6 +24,7 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		fmt.Println(err.Error())
 		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.New("couldn't process post from request")
 	}
+	post.UpdatedTimestamp = time.Now()
 
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
@@ -65,7 +66,13 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body:       string(jsonOut),
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "*",
+			"Access-Control-Allow-Methods": "POST,PUT,OPTIONS,DELETE",
+			"Access-Control-Max-Age":       "86400",
+		},
+		Body: string(jsonOut),
 	}, nil
 }
 

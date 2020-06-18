@@ -68,7 +68,13 @@ func handle(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 			Body:       "{\"error\":\"Couldn't return created post. Post was created.\"}",
 		}, nil
 	}
-	return events.APIGatewayProxyResponse{StatusCode: 200, Body: string(jsonOut)}, nil
+	return events.APIGatewayProxyResponse{StatusCode: 200,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "*",
+			"Access-Control-Allow-Methods": "POST,PUT,OPTIONS,DELETE",
+			"Access-Control-Max-Age":       "86400",
+		}, Body: string(jsonOut)}, nil
 }
 
 func main() {
